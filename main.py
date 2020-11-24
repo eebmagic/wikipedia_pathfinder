@@ -83,20 +83,16 @@ def get_url_path(starturl, target, limit=1):
                 newNode = node(url)
                 t.add(newNode, curr)
 
-                # if target, then add to tree, work back up to head, and return
+                # if target, then return path to this node
                 if target.lower() == url.lower():
                     targetFound = True
                     fullPath = t.getPath(newNode)
-                    # print(f"FOUND PATH: {fullPath}")
                     return fullPath, len(allAdded)
                 else:
                     # if not, then add children to tree and queue for bfs
                     if newNode.getData() not in allAdded:
                         searchOrder.add(newNode)
                         allAdded.add(newNode.getData())
-                    else:
-                        # print(f"   skipping {get_subjects([newNode.getData()])[0]}")
-                        pass
 
         # change curr to next node in queue
         curr = searchOrder.pop()
@@ -113,7 +109,7 @@ if __name__ == '__main__':
     startTime = time.time()
     path, considerSize = get_url_path(start, target)
     duration = time.time() - startTime
-    
+
     print(f"\nThe shortest possible path is in {len(path)} steps")
     print(f"\t(took {duration:.2f} secs; considered {considerSize} articles):")
     for url in path:

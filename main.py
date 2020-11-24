@@ -30,7 +30,10 @@ def get_subjects(urllist):
 
 
 def valid_url(url):
-    if url.startswith("https://en.wikipedia.org/wiki/"):
+    goodStart = url.startswith("https://en.wikipedia.org/wiki/")
+    wikiHelp = "/Wikipedia:" in url
+
+    if goodStart and not wikiHelp:
         return True
 
     return False
@@ -85,14 +88,15 @@ def get_url_path(starturl, target, limit=1):
                     targetFound = True
                     fullPath = t.getPath(newNode)
                     # print(f"FOUND PATH: {fullPath}")
-                    return fullPath
+                    return fullPath, len(allAdded)
                 else:
                     # if not, then add children to tree and queue for bfs
                     if newNode.getData() not in allAdded:
                         searchOrder.add(newNode)
                         allAdded.add(newNode.getData())
                     else:
-                        print(f"   skipping {get_subjects([newNode.getData()])[0]}")
+                        # print(f"   skipping {get_subjects([newNode.getData()])[0]}")
+                        pass
 
         # change curr to next node in queue
         curr = searchOrder.pop()
@@ -101,14 +105,16 @@ def get_url_path(starturl, target, limit=1):
 if __name__ == '__main__':
     # start = input("Give a start url: ").strip()
     # target = input("Give a target url: ").strip()
-    start = "https://en.wikipedia.org/wiki/Submarine_earthquake"
-    target = "https://en.wikipedia.org/wiki/Non-monogamy"
-    # target = "https://en.wikipedia.org/wiki/Submarine_earthquake"
-    # start = "https://en.wikipedia.org/wiki/Non-monogamy"
+    # start = "https://en.wikipedia.org/wiki/Submarine_earthquake"
+    # target = "https://en.wikipedia.org/wiki/Non-monogamy"
+    start = "https://en.wikipedia.org/wiki/Turtle"
+    target = "https://en.wikipedia.org/wiki/China"
 
     startTime = time.time()
-    path = get_url_path(start, target)
+    path, considerSize = get_url_path(start, target)
     duration = time.time() - startTime
-    print(f"\nThe shortest possible path is in {len(path)} steps (took {duration} secs):")
+    
+    print(f"\nThe shortest possible path is in {len(path)} steps")
+    print(f"\t(took {duration:.2f} secs; considered {considerSize} articles):")
     for url in path:
         print(url)

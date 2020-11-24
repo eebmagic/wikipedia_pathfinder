@@ -52,15 +52,22 @@ def get_url_path(starturl, target, limit=1):
     head = node(starturl)
     t = tree(head)
 
-    # set head to current node
-    curr = t.getHead()
+    # queue of new nodes to try searching from
     searchOrder = queue()
+    searchOrder.add(t.getHead())
+
+    # set of all urls that have already been searched from
+    allAdded = set()
+    allAdded.add(t.getHead().getData())
 
     # LOOP:
+    # set head to current node
+    curr = searchOrder.pop()
     targetFound = False
     while not targetFound:
         # get child nodes/urls of current node
         currUrl = curr.getData()
+        print(f"getting article: {get_subjects([currUrl])[0]}")
         
         # if url is a valid article
         if valid_url(currUrl):
@@ -80,7 +87,11 @@ def get_url_path(starturl, target, limit=1):
                     return fullPath
                 else:
                     # if not, then add children to tree and queue for bfs
-                    searchOrder.add(newNode)
+                    if newNode.getData() not in allAdded:
+                        searchOrder.add(newNode)
+                        allAdded.add(newNode.getData())
+                    else:
+                        print(f"   skipping {get_subjects([newNode.getData()])[0]}")
 
         # change curr to next node in queue
         curr = searchOrder.pop()

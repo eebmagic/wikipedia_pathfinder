@@ -28,9 +28,23 @@ def get_subjects(urllist):
     return out
 
 
+def valid_url(url):
+    if url.startswith("https://en.wikipedia.org/wiki/"):
+        return True
+
+    return False
+
+
 def get_child_urls(url):
-    fullResponse = requests.get(url).text
-    return get_contained_links(fullResponse)
+    if valid_url(url):
+        try:
+            fullResponse = requests.get(url).text
+            return get_contained_links(fullResponse)
+        except requests.exceptions.ConnectionError as ce:
+            print(f"ERROR: Given the {url = } there was a connection error")
+            print(ce)
+    else:
+        print(f"INVALID URL: {url}")
 
 
 def get_url_path(starturl, target, limit=1):
@@ -47,31 +61,38 @@ def get_url_path(starturl, target, limit=1):
     while not targetFound:
         # get child nodes/urls of current node
         currUrl = curr.getData()
-        childUrls = get_child_urls(currUrl)
+        
+        # if url is a valid article
+        if valid_url(currUrl):
+            childUrls = get_child_urls(currUrl)
 
-        # check if target destination in children
-        for url in childUrls:
-            # add child urls to tree as child nodes of curr
-            newNode = node(url)
-            t.add(newNode, curr)
+            # check if target destination in children
+            for url in childUrls:
+                # add child urls to tree as child nodes of curr
+                newNode = node(url)
+                t.add(newNode, curr)
 
-            # if target, then add to tree, work back up to head, and return
-            if target.lower() == url.lower():
-                targetFound = True
-                fullPath = t.getPath(newNode)
-                # print(f"FOUND PATH: {fullPath}")
-                return fullPath
-            else:
-                # if not, then add children to tree and queue for bfs
-                searchOrder.add(newNode)
+                # if target, then add to tree, work back up to head, and return
+                if target.lower() == url.lower():
+                    targetFound = True
+                    fullPath = t.getPath(newNode)
+                    # print(f"FOUND PATH: {fullPath}")
+                    return fullPath
+                else:
+                    # if not, then add children to tree and queue for bfs
+                    searchOrder.add(newNode)
 
         # change curr to next node in queue
         curr = searchOrder.pop()
 
 
 if __name__ == '__main__':
-    start = input("Give a start url: ").strip()
-    target = input("Give a target url: ").strip()
+    # start = input("Give a start url: ").strip()
+    # target = input("Give a target url: ").strip()
+    start = "https://en.wikipedia.org/wiki/Submarine_earthquake"
+    target = "https://en.wikipedia.org/wiki/Non-monogamy"
+    # target = "https://en.wikipedia.org/wiki/Submarine_earthquake"
+    # start = "https://en.wikipedia.org/wiki/Non-monogamy"
 
     path = get_url_path(start, target)
     print(f"\nThe shortest possible path is in {len(path)} steps:")

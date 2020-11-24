@@ -1,6 +1,7 @@
 import requests
 from myqueue import queue
 from tree import tree, node
+import time
 
 def get_contained_links(fulltext):
     splits = fulltext.split('<p>')
@@ -105,7 +106,9 @@ if __name__ == '__main__':
     # target = "https://en.wikipedia.org/wiki/Submarine_earthquake"
     # start = "https://en.wikipedia.org/wiki/Non-monogamy"
 
+    startTime = time.time()
     path = get_url_path(start, target)
-    print(f"\nThe shortest possible path is in {len(path)} steps:")
+    duration = time.time() - startTime
+    print(f"\nThe shortest possible path is in {len(path)} steps (took {duration} secs):")
     for url in path:
         print(url)

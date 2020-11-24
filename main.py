@@ -3,8 +3,6 @@ from myqueue import queue
 from tree import tree, node
 
 def get_contained_links(fulltext):
-    # response = requests.get(start)
-    # splits = response.text.split('<p>')
     splits = fulltext.split('<p>')
     found = set()
     for x in splits:
@@ -35,7 +33,7 @@ def get_child_urls(url):
     return get_contained_links(fullResponse)
 
 
-def full_search(starturl, target, limit=1):
+def get_url_path(starturl, target, limit=1):
     # make a tree with start url as head
     head = node(starturl)
     t = tree(head)
@@ -72,9 +70,10 @@ def full_search(starturl, target, limit=1):
 
 
 if __name__ == '__main__':
-    start = "https://en.wikipedia.org/wiki/Turtle"
-    target = "https://en.wikipedia.org/wiki/China"
+    start = input("Give a start url: ").strip()
+    target = input("Give a target url: ").strip()
 
-    full = full_search(start, target)
-    subjects = get_subjects(full)
-    print(f"{full = }")
+    path = get_url_path(start, target)
+    print(f"\nThe shortest possible path is in {len(path)} steps:")
+    for url in path:
+        print(url)

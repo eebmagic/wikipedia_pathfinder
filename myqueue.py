@@ -2,24 +2,42 @@ class queue:
     def __init__(self):
         self.content = []
 
-    def add(self, item):
-        self.content.append(item)
+    def add(self, item, score):
+        if len(self.content) == 0:
+            self.content.append((item, score))
+            return
+
+        for ind, point in enumerate(self.content):
+            existingItem, existingScore = point
+            if existingScore < score:
+                self.content.insert(ind, (item, score))
+                break
+
+        # if len(self.content) % 10 == 0:
+        #     print(self)
 
     def pop(self):
-        return self.content.pop(0)
+        item, score = self.content.pop(0)
+        return item
 
     def size(self):
         return len(self.content)
 
     def __str__(self):
-        return str(self.content)
+        if type(self.content[0][0]) == str:
+            return str(self.content)
+        else:
+            out = []
+            for item, score in self.content:
+                out.append((item.getData().split('/')[-1], score))
+            return str(out)
 
 
 if __name__ == "__main__":
     q = queue()
-    q.add('test')
-    q.add('secondary')
-    q.add('third')
+    q.add('test', 0)
+    q.add('secondary', 2)
+    q.add('third', 1)
     print(q)
     print(q.pop())
     print(q)

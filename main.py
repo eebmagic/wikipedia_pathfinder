@@ -2,6 +2,10 @@ import requests
 from myqueue import queue
 from tree import tree, node
 import time
+import numpy as np
+import spacy
+
+model = spacy.load('en_core_web_sm')
 
 def get_contained_links(fulltext):
     splits = fulltext.split('<p>')
@@ -31,12 +35,17 @@ def get_subjects(urllist):
 
 def valid_url(url):
     goodStart = url.startswith("https://en.wikipedia.org/wiki/")
-    wikiHelp = "/Wikipedia:" in url
+    notWikiHelp = "/wikipedia:" not in url.lower()
+    notPhp = "index.php" not in url.lower()
+    notTemplate = "template:" not in url.lower()
+    notFile = "file:" not in url.lower()
+    notCategory = "category:" not in url.lower()
 
-    if goodStart and not wikiHelp:
+    if goodStart and wikiHelp and notPhp and notTemplate and notFile and notCategory:
         return True
-
-    return False
+    else:
+        print(f"INVALID URL: {url}")
+        return False
 
 
 def get_child_urls(url):
@@ -51,14 +60,26 @@ def get_child_urls(url):
         print(f"INVALID URL: {url}")
 
 
+def subject_distance(a, b):
+    aToken = model(a)
+    bToken = model(b)
+
+    # print(aToken.similarity(bToken))
+    return aToken.similarity(bToken)
+    # input()
+
+
 def get_url_path(starturl, target, limit=1):
+    targetSubject = get_subjects([target])[0]
+    startSubject = get_subjects([start])[0]
+
     # make a tree with start url as head
     head = node(starturl)
     t = tree(head)
 
     # queue of new nodes to try searching from
     searchOrder = queue()
-    searchOrder.add(t.getHead())
+    searchOrder.add(t.getHead(), subject_distance(startSubject, targetSubject))
 
     # set of all urls that have already been searched from
     allAdded = set()
@@ -71,7 +92,7 @@ def get_url_path(starturl, target, limit=1):
     while not targetFound:
         # get child nodes/urls of current node
         currUrl = curr.getData()
-        print(f"getting article: {get_subjects([currUrl])[0]}")
+        # print(f"getting article: {get_subjects([currUrl])[0]}")
         
         # if url is a valid article
         if valid_url(currUrl):
@@ -83,6 +104,10 @@ def get_url_path(starturl, target, limit=1):
                 newNode = node(url)
                 t.add(newNode, curr)
 
+                currSubject = get_subjects([url])[0]
+                currDist = subject_distance(currSubject, targetSubject)
+                print(f"{currDist:.5f} - {currSubject}")
+
                 # if target, then return path to this node
                 if target.lower() == url.lower():
                     targetFound = True
@@ -91,8 +116,10 @@ def get_url_path(starturl, target, limit=1):
                 else:
                     # if not, then add children to tree and queue for bfs
                     if newNode.getData() not in allAdded:
-                        searchOrder.add(newNode)
+                        searchOrder.add(newNode, currDist)
                         allAdded.add(newNode.getData())
+        else:
+            print("breaking because of invalid url ^")
 
         # change curr to next node in queue
         curr = searchOrder.pop()
@@ -101,10 +128,10 @@ def get_url_path(starturl, target, limit=1):
 if __name__ == '__main__':
     # start = input("Give a start url: ").strip()
     # target = input("Give a target url: ").strip()
-    # start = "https://en.wikipedia.org/wiki/Submarine_earthquake"
-    # target = "https://en.wikipedia.org/wiki/Non-monogamy"
-    start = "https://en.wikipedia.org/wiki/Turtle"
-    target = "https://en.wikipedia.org/wiki/China"
+    start = "https://en.wikipedia.org/wiki/Submarine_earthquake"
+    target = "https://en.wikipedia.org/wiki/Non-monogamy"
+    # start = "https://en.wikipedia.org/wiki/Turtle"
+    # target = "https://en.wikipedia.org/wiki/China"
 
     startTime = time.time()
     path, considerSize = get_url_path(start, target)
